@@ -1,54 +1,23 @@
 # Prerequisites
 
-## Google Cloud Platform
+## Hardware Requirements
+8 GB of RAM (Preferebly 16 GB) 50 GB Disk space
 
-This tutorial leverages the [Google Cloud Platform](https://cloud.google.com/) to streamline provisioning of the compute infrastructure required to bootstrap a Kubernetes cluster from the ground up. [Sign up](https://cloud.google.com/free/) for $300 in free credits.
+## Virtual Box
+[Download](https://www.virtualbox.org/wiki/Downloads) and install VirtualBox on any one of the supported platforms.
 
-[Estimated cost](https://cloud.google.com/products/calculator/#id=55663256-c384-449c-9306-e39893e23afb) to run this tutorial: $0.23 per hour ($5.46 per day).
+Check out VirtualBox [User Manual](https://www.virtualbox.org/manual/) if you need help installing it.
 
-> The compute resources required for this tutorial exceed the Google Cloud Platform free tier.
+## Vagrant
+Vagrant provides an easier way to deploy multiple virtual machines on VirtualBox or other providers.
 
-## Google Cloud Platform SDK
+[Download](https://www.vagrantup.com/downloads.html) and install Vagrant on your host machine. Check out Vagrant documentation if you need help [installing](https://www.vagrantup.com/docs/installation/) it or this is your [first time using Vagrant](https://www.vagrantup.com/intro/getting-started/index.html).
 
-### Install the Google Cloud SDK
+## Vagrant Plugins
+This guide uses the following Vagrant plugin to ease infrastructure provision:
+* [Vagrant Host Manager](https://github.com/devopsgroup-io/vagrant-hostmanager)
 
-Follow the Google Cloud SDK [documentation](https://cloud.google.com/sdk/) to install and configure the `gcloud` command line utility.
-
-Verify the Google Cloud SDK version is 262.0.0 or higher:
-
-```
-gcloud version
-```
-
-### Set a Default Compute Region and Zone
-
-This tutorial assumes a default compute region and zone have been configured.
-
-If you are using the `gcloud` command-line tool for the first time `init` is the easiest way to do this:
-
-```
-gcloud init
-```
-
-Then be sure to authorize gcloud to access the Cloud Platform with your Google user credentials:
-
-```
-gcloud auth login
-```
-
-Next set a default compute region and compute zone:
-
-```
-gcloud config set compute/region us-west1
-```
-
-Set a default compute zone:
-
-```
-gcloud config set compute/zone us-west1-c
-```
-
-> Use the `gcloud compute zones list` command to view additional regions and zones.
+See the Vagrant documentation on [Plugins Usage](https://www.vagrantup.com/docs/plugins/usage.html).
 
 ## Running Commands in Parallel with tmux
 
