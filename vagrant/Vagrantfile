@@ -1,0 +1,88 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require_relative './helpers/key_authorization'
+
+controller0_ip = '192.168.30.101'
+controller1_ip = '192.168.30.102'
+worker0_ip = '192.168.30.201'
+worker1_ip = '192.168.30.202'
+worker2_ip = '192.168.30.203'
+loadbalancer_ip = '192.168.30.100'
+
+Vagrant.configure('2') do |config|
+  config.ssh.forward_agent = true
+  config.ssh.insert_key = false
+  config.ssh.verify_host_key = false
+
+  config.vm.box = 'ubuntu/bionic64'
+  config.vm.box_check_update = false
+
+  config.hostmanager.enabled = true
+  config.hostmanager.manage_host = true
+  config.hostmanager.manage_guest = true
+  config.hostmanager.ignore_private_ip = false
+  config.hostmanager.include_offline = false
+
+  authorize_key_for_root config,'~/.ssh/id_rsa.pub'
+
+  {
+    'controller-0' => controller0_ip,
+    'controller-1' => controller1_ip
+  }.each do |short_name, ip|
+    config.vm.define short_name do |host|
+      host.hostmanager.aliases = "#{short_name}.kube.local"
+      host.vm.network 'private_network', ip: ip
+      host.vm.hostname = "#{short_name}"
+      host.vm.provider "virtualbox" do |vbox|
+        vbox.cpus = 2
+        vbox.memory = 2048
+      end
+    end
+  end
+
+  {
+    'worker-0' => worker0_ip,
+    'worker-1' => worker1_ip,
+    'worker-2' => worker2_ip
+  }.each do |short_name, ip|
+    config.vm.define short_name do |host|
+      host.hostmanager.aliases = "#{short_name}.kube.local"
+      host.vm.network 'private_network', ip: ip
+      host.vm.hostname = "#{short_name}"
+      host.vm.provision "install-docker", type: "shell", :inline => "curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh"
+      host.vm.provision "sysctl-netbridge", type: "shell", :inline => "sysctl net.bridge.bridge-nf-call-iptables=1"
+      host.vm.provider "virtualbox" do |vbox|
+        vbox.cpus = 1
+        vbox.memory = 512
+      end
+    end
+  end
+
+  {
+    'loadbalancer' => loadbalancer_ip
+  }.each do |short_name, ip|
+    config.vm.define short_name do |host|
+      host.hostmanager.aliases = "#{short_name}.kube.local", "api.kube.local"
+      host.vm.network 'private_network', ip: ip
+      host.vm.hostname = "#{short_name}"
+      host.vm.provider "virtualbox" do |vbox|
+        vbox.cpus = 1
+        vbox.memory = 512
+      end
+    end
+  end
+
+
+  config.group.groups = {
+    'controllers' => [
+      'controller-0',
+      'controller-1'
+    ],
+    'workers' => [
+      'worker-0',
+      'worker-1',
+      'worker-2'
+    ]
+  }
+end
